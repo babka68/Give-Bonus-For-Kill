@@ -1,5 +1,5 @@
-#pragma semicolon 1
-#pragma newdecls required
+#pragma semicolon 1 // Сообщает компилятору о том, что в конце каждого выражения должен стоять символ ;
+#pragma newdecls required // Сообщает компилятору о том, что синтаксис плагина исключительно новый
 
 public Plugin myinfo =  {
 	name = "Give Bonus For Kill", 
@@ -10,12 +10,12 @@ public Plugin myinfo =  {
 };
 
 bool g_bEnable;
-int g_ikill_Hp, g_iknife_Kill_Hp, g_ihegrenade_Kill_Hp, g_iheadshot_Kill_Hp, g_imax_Health_Value, m_iHealth;
+int g_ikill_Hp, g_iknife_Kill_Hp, g_ihegrenade_Kill_Hp, g_iheadshot_Kill_Hp, g_imax_Health_Value, m_health;
 
 public void OnPluginStart() {
 	
-	if ((m_iHealth = FindSendPropInfo("CCSPlayer", "m_iHealth")) == -1) {
-		SetFailState("CCSPlayer::m_iHealth");
+	if ((m_health = FindSendPropInfo("CCSPlayer", "m_health")) == -1) {
+		SetFailState("CCSPlayer::m_health");
 	}
 	
 	ConVar cvar;
@@ -43,7 +43,7 @@ public void OnPluginStart() {
 	cvar.AddChangeHook(CVarChanged_Max_Health_Value);
 	g_imax_Health_Value = cvar.IntValue;
 	
-	HookEvent("player_death", Event_Player_Death); // Ловим событие смерти игрока
+	HookEvent("player_death", Event_Death_Player); // Ловим событие смерти игрока
 }
 
 public void CVarChanged_Enable_Kill_Bonus(ConVar cvar, const char[] oldValue, const char[] newValue) {
@@ -70,45 +70,43 @@ public void CVarChanged_Max_Health_Value(ConVar cvar, const char[] oldValue, con
 	g_imax_Health_Value = cvar.IntValue;
 }
 
-public void Event_Player_Death(Event event, const char[] name, bool silent) {
-	
+public void Event_Death_Player(Event event, const char[] name, bool silent) {
 	if (g_bEnable) {  // Если плагин включен идем дальше.
 		
 		int attacker = GetClientOfUserId(event.GetInt("attacker")); // Нападающий
 		if (attacker && IsClientInGame(attacker)) {  // Если нападающий жив и в игре продолжаем.
 			
-			int iHealth = GetClientHealth(attacker); // Возвращаем нападавшему HP,если оно превысило g_imax_Health_Value
-			if (iHealth > 0 && iHealth < g_imax_Health_Value) {
+			int amountHealth = GetClientHealth(attacker); // Возвращаем нападавшему HP,если оно превысило g_imax_Health_Value
+			if (amountHealth > 0 && amountHealth < g_imax_Health_Value) {
 				
 				int victim = GetClientOfUserId(event.GetInt("userid")); // жертва
 				if (victim && GetClientTeam(attacker) != GetClientTeam(victim)) {  // Определяем команду нападавшего и проверяем нет ли в ней жертвы:D
 					
 					if (event.GetBool("headshot")) {  // Событие убийства в голову
-						iHealth += g_iheadshot_Kill_Hp;
+						amountHealth += g_iheadshot_Kill_Hp;
 					}
 					
 					else {
-						char sWeapon[12];
-						event.GetString("sWeapon", sWeapon, sizeof(sWeapon));
+						char weapon[12];
+						event.GetString("weapon", weapon, sizeof(weapon));
 						
-						if (!strcmp(sWeapon, "hegrenade")) {  // Событие убийства с гранатой
-							iHealth += g_ihegrenade_Kill_Hp;
+						if (!strcmp(weapon, "hegrenade")) {  // Событие убийства с гранатой
+							amountHealth += g_ihegrenade_Kill_Hp;
 						}
 						
-						else if (!strcmp(sWeapon, "knife")) {  // Событие убийства с ножом
-							iHealth += g_iknife_Kill_Hp;
+						else if (!strcmp(weapon, "knife")) {  // Событие убийства с ножом
+							amountHealth += g_iknife_Kill_Hp;
 						}
 						
 						else {  // Событие обычного убийства
-							iHealth += g_ikill_Hp;
+							amountHealth += g_ikill_Hp;
 						}
 					}
 					
-					if (iHealth > g_imax_Health_Value) {
-						iHealth = g_imax_Health_Value;
+					if (amountHealth > g_imax_Health_Value) {
+						amountHealth = g_imax_Health_Value;
 					}
-					
-					SetEntData(attacker, m_iHealth, iHealth);
+					SetEntData(attacker, m_health, amountHealth);
 				}
 			}
 		}
