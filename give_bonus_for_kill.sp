@@ -43,6 +43,8 @@ public void OnPluginStart() {
 	cvar.AddChangeHook(CVarChanged_Max_Health_Value);
 	g_imax_Health_Value = cvar.IntValue;
 	
+	AutoExecConfig(true, "give_bonus_for_kill");
+	
 	HookEvent("player_death", Event_Death_Player); // Ловим событие смерти игрока
 }
 
