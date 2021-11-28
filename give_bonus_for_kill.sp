@@ -5,7 +5,7 @@ public Plugin myinfo =
 {
 	name = "Give Bonus For Kill", 
 	author = "babka68", 
-	description = "За убийстве игрока получает определённых бонус.", 
+	description = "За убийство игрока получает определённый бонус.", 
 	version = "1.0", 
 	url = "https://vk.com/zakazserver68"
 };
